@@ -1,1 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Текущие отметки - МЭШ</title>
+    <!-- Шрифты -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Иконки -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            padding-bottom: 50px;
+        }
 
+        /* --- ШАПКА --- */
+        .header {
+            background-color: #2c3e8f;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            flex-wrap: wrap; /* Для телефона */
+        }
+        .header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .logo { font-weight: 700; font-size: 16px; letter-spacing: 1px; margin-right: 5px; }
+        .header-link { opacity: 0.8; cursor: pointer; display: none; } /* Скрываем лишнее на телефоне */
+        .header-link.mobile-show { display: flex; align-items: center; gap: 5px; }
+        
+        .user-block { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+        .user-avatar { background: #e57373; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
+        .user-info { display: flex; flex-direction: column; align-items: flex-end; }
+        .user-name { font-weight: 700; font-size: 14px; }
+        .user-group { font-size: 10px; opacity: 0.8; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 2px;}
+
+        @media (min-width: 600px) {
+            .header-link { display: flex; align-items: center; gap: 6px; }
+            .header-link.mobile-show { display: none; }
+            .header { padding: 12px 30px; flex-wrap: nowrap; }
+        }
+
+        /* --- ХЛЕБНЫЕ КРОШКИ И ПАНЕЛЬ --- */
+        .sub-header {
+            background: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #eee;
+            overflow-x: auto;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+        .sub-header i.fa-columns { color: #555; }
+        .sub-nav-link { color: #333; font-weight: 500; cursor: pointer; position: relative; padding-bottom: 12px; }
+        .sub-nav-link.active { color: #2c3e8f; border-bottom: 3px solid #2c3e8f; }
+
+        /* --- ОСНОВНОЙ БЛОК --- */
+        .container {
+            max-width: 900px;
+            margin: 15px auto;
+            padding: 0 15px;
+        }
+
+        /* --- БЛОК ТЕКУЩИХ ОТМЕТОК (ТАБЛИЦА МАТЕМАТИКИ) --- */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .subject-title { font-size: 16px; font-weight: 600; color: #1e1e1e; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; }
+        .subject-title i { font-size: 12px; color: #000; }
+        .subject-dates { font-size: 13px; color: #888; }
+
+        .avg-score {
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #4caf50;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: white;
+        }
+        .avg-score i { font-size: 12px; }
+
+        /* Сетка оценок */
+        .marks-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr); /* 8 колонок для десктопа */
+            gap: 8px;
+        }
+        .mark-item {
+            background: #f3f4f6;
+            border-radius: 10px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: #222;
+            cursor: text;
+        }
+        /* Исправляем красные оценки на скрине (делаем их обычными) */
+        .mark-item.bad-mark { border: 1px solid #e0e0e0; color: #333; background: #f9f9f9; }
+
+        @media (max-width: 500px) {
+            .marks-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; } /* На телефоне 5 колонок */
+            .mark-item { height: 32px; font-size: 14px; }
+            .card-header { flex-wrap: wrap; }
+        }
+
+        /* --- ОСТАЛЬНЫЕ ПРЕДМЕТЫ (СПИСОК) --- */
+        .list-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 10px; }
+
+        .list-subject {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .list-info { display: flex; flex-direction: column; gap: 4px; }
+        .list-name { font-size: 15px; font-weight: 600; color: #111; display: flex; align-items: center; gap: 6px; }
+        .list-name i { font-size: 11px; color: #000; }
+        .list-dates { font-size: 13px; color: #888; }
+
+        .list-mark {
+            background: #f2f9f2;
+            color: #2e7d32;
+            padding: 3px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .list-mark i { font-size: 13px; }
+        
+        /* --- ПОДВАЛ --- */
+        .footer {
+            padding: 20px 15px;
+            color: #999;
+            font-size: 13px;
+            border-top: 1px solid #eaeaea;
+            margin-top: 30px;
+        }
+        .footer-links { display: flex; gap: 20px; font-weight: 500; color: #333; margin-bottom: 15px; }
+        .footer-links span { cursor: pointer; }
+        .footer-info { line-height: 1.6; }
+        .footer-ver { color: #bbb; font-size: 11px; margin-top: 10px; display: block; }
+
+        /* Вспомогательный класс для редактирования */
+        [contenteditable="true"]:focus { outline: 2px solid #2c3e8f; border-radius: 4px; background: white; padding: 0 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">МЭШ</div>
+            <div class="header-link mobile-show"><i class="fas fa-book"></i> Библиотека</div>
+            <div class="header-link"><i class="fas fa-user-graduate"></i> Портфолио учащегося</div>
+            <div class="header-link"><i class="fas fa-trophy"></i> Олимпиады</div>
+            <div class="header-link"><i class="fas fa-newspaper"></i> Новости</div>
+        </div>
+        <div class="user-block">
+            <i class="fas fa-bell" style="opacity: 0.8; font-size: 16px; margin-right: 5px;"></i>
+            <div class="user-avatar">КД</div>
+            <div class="user-info">
+                <span class="user-name">Кирилл Дудоров</span>
+                <span class="user-group">ССМ 114/25</span>
+            </div>
+            <i class="fas fa-chevron-down" style="font-size: 10px; opacity: 0.8; margin-left: 5px;"></i>
+        </div>
+    </div>
+
+    <!-- Под-шапка (вкладки) -->
+    <div class="sub-header">
+        <i class="fas fa-bars" style="font-size: 18px; color: #555;"></i>
+        <span style="font-weight: 500;">Колледж</span>
+        <span style="color: #999; margin: 0 5px;">|</span>
+        <span class="sub-nav-link">Расписание</span>
+        <span class="sub-nav-link">Задания</span>
+        <span class="sub-nav-link">Отметки <i class="fas fa-chevron-down" style="font-size: 10px;"></i></span>
+        <span class="sub-nav-link">Учёба</span>
+        <span class="sub-nav-link">Колледж</span>
+    </div>
+
+    <!-- Контент -->
+    <div class="container">
+
+        <!-- ЗАГОЛОВОК И ВКЛАДКИ ТЕКУЩИХ ОТМЕТОК -->
+        <div class="card" style="padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;">Текущие отметки</h3>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span style="font-size: 14px; color: #555; cursor: pointer;">По дате</span>
+                <span style="font-size: 14px; font-weight: 600; color: #2c3e8f; border-bottom: 2px solid #2c3e8f; padding-bottom: 15px;">По дисциплине</span>
+                <i class="fas fa-list-ul" style="color: #555; font-size: 18px; padding: 8px; background: #f0f0f0; border-radius: 8px;"></i>
+            </div>
+        </div>
+
+        <!-- СЕТКА МАТЕМАТИКИ -->
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="subject-title">Математика <i class="fas fa-caret-down"></i></div>
+                    <div class="subject-dates">Семестр 2 12 янв – 28 июня</div>
+                </div>
+                <div class="avg-score">
+                    <i class="fas fa-caret-up"></i> 4.39
+                </div>
+            </div>
+
+            <!-- ВСЕ ОЦЕНКИ ЗАМЕНЕНЫ НА 4 И 5, КРАСНЫЕ ТЕПЕРЬ БЕЗ РАМОК -->
+            <div class="marks-grid">
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">3</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">3</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">5</div>
+
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+
+                <div class="mark-item" contenteditable="true">3</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">3</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">4</div>
+                <div class="mark-item" contenteditable="true">5</div>
+                <div class="mark-item" contenteditable="true">5</div>
+            </div>
+        </div>
+
+        <!-- БЛОК ИТОГОВЫЕ ОТМЕТКИ -->
+        <h4 style="font-size: 15px; margin: 0 0 10px 5px; font-weight: 600;">Итоговые отметки</h4>
+
+        <!-- Итоговая Математика -->
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Математика <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <!-- ПРОЧИЕ ПРЕДМЕТЫ ИЗ ВАШИХ СКРИНШОТОВ -->
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Английский язык <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Русский язык <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Физика <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Физическая культура <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">5</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Химия <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Основы безопасности и защиты родины <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">5</span>
+            </div>
+        </div>
+        
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Биология <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">География <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Индивидуальный проект <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">История <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Литература <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">5</span>
+            </div>
+        </div>
+        
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Обществознание  <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">5</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Основы безопасности на производстве <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">5</span>
+            </div>
+        </div>
+
+        <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Информатика <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">5</span>
+            </div>
+        </div>
+        
+                <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Практическая подготовка <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">5</span>
+            </div>
+        </div>
+
+<div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Основы черчения и чтение чертежей <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div> 
+
+
+        
+                <div class="list-subject">
+            <div class="list-info">
+                <div class="list-name">Гидравлика <i class="fas fa-caret-down"></i></div>
+                <div class="list-dates">Семестр 2 12 янв – 28 июня</div>
+            </div>
+            <div class="list-mark">
+                <i class="fas fa-check-circle"></i> <span contenteditable="true">4</span>
+            </div>
+        </div>
+
+        <!-- ПОДВАЛ -->
+        <div class="footer">
+            <div class="footer-links">
+                <span>О проекте</span>
+                <span>Пользовательское соглашение</span>
+            </div>
+            <div class="footer-info">
+                <i class="far fa-copyright"></i> Департамент образования и науки города Москвы<br>
+                Департамент информационных технологий города Москвы
+            </div>
+            <span class="footer-ver">Версия 1.11.0</span>
+        </div>
+
+    </div>
+
+</body>
+</html>
